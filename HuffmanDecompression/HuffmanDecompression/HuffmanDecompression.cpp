@@ -118,6 +118,59 @@ void generateEncodings(huffNode *root, vector<bool> & encoding, vector<vector<bo
 	}
 }
 
+void searchEncodings(vector<bool> bitString, vector<vector<bool>> encodingTable,char &asciiChar)
+{
+	asciiChar = -1;
+	for (int i = 0; i < 256; i++)
+	{
+		if (bitString == encodingTable[i])
+		{
+			asciiChar = (char)i;
+		}
+	}
+}
+
+void checkEncoding(vector<bool> bitString, vector<vector<bool>> encodingTable, ofstream &fout)
+{
+	//vector<bool>::const_iterator first = bitString.begin();
+	int searchStart = 0;
+	char outputCh = -1;
+	vector<bool> buffer;
+	for (int i = 0; i < bitString.size(); i++)
+	{
+		//vector<bool> subString(first, first + i);
+		buffer.push_back(bitString[i]);
+		searchEncodings(buffer, encodingTable, outputCh);
+		if (outputCh != -1)
+		{
+			fout << outputCh;
+			buffer.clear();
+		}
+	}
+}
+
+void convertFile(ifstream &fin, ofstream &fout, vector<bool> &bitString, vector<vector<bool>> encodingTable)
+{
+	char byte;
+	char outputCh;
+	//vector<bool> bitString;
+	//vector<bool> buffer;
+
+	while (fin.read(&byte, 1))
+	{
+		for (int i = 0; i < CHAR_BIT; i++)
+		{
+			bitString.push_back(((byte >> i) & 1) != 0);
+		}
+		//byte = -1;
+		//checkEncoding(bitString, outputCh, encodingTable);
+		/*if (outputCh != -1);
+		{
+			fout << outputCh;
+		}*/
+	}
+}
+
 int main(int argc, char* argv[])
 {
 	if (argc < 2)
@@ -128,13 +181,15 @@ int main(int argc, char* argv[])
 	{
 		inFileName = argv[1];
 		ifstream fin(inFileName, ios::binary);
+		ofstream fout("output.txt"); //need to make this the same name as the input file!!!!!!!!!
 		string extension = inFileName.substr(inFileName.length() - 4, 4);
 		priority_queue<huffNode*, vector<huffNode*>, node_comparison> nodeHeap;
 		vector<bool> startEncoding;
+		vector<bool> bitBuffer;
 		vector<vector<bool>> encodingTable(256, vector<bool>(0));
 
 
-		if (fin.fail() || extension != ".mcp")//extension != ".mcp") //|| fin.fail())
+		if (fin.fail() || extension != ".mcp")
 		{
 			cout << "File supplied was not an .mcp file, rerun program and provide a .mcp file";
 		}
@@ -153,6 +208,7 @@ int main(int argc, char* argv[])
 			cout << "The original file name was: " << originalFileName << endl;
 
 			int frequencyList[256];
+			
 
 			initializeFrequencyList(frequencyList);
 			generateFrequencyList(frequencyList, fin);
@@ -167,6 +223,8 @@ int main(int argc, char* argv[])
 			//create the encoding for each leaf node (character)
 			generateEncodings(root, startEncoding, encodingTable);
 			
+			convertFile(fin, fout, bitBuffer, encodingTable);
+			checkEncoding(bitBuffer, encodingTable, fout);
 
 
 		}
