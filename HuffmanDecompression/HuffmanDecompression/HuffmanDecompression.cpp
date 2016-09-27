@@ -123,22 +123,20 @@ void searchEncodings(vector<bool> bitString, vector<vector<bool>> encodingTable,
 	asciiChar = -1;
 	for (int i = 0; i < 256; i++)
 	{
-		if (bitString == encodingTable[i])
+		if (encodingTable[i].size() == bitString.size() && bitString == encodingTable[i])
 		{
-			asciiChar = (char)i;
+			asciiChar = i;
 		}
 	}
 }
 
 void checkEncoding(vector<bool> bitString, vector<vector<bool>> encodingTable, ofstream &fout)
 {
-	//vector<bool>::const_iterator first = bitString.begin();
-	int searchStart = 0;
 	char outputCh = -1;
 	vector<bool> buffer;
+	bitString.erase(bitString.begin(), bitString.begin() + 8); //getting rid of "junk" bits that were messing with my output
 	for (int i = 0; i < bitString.size(); i++)
 	{
-		//vector<bool> subString(first, first + i);
 		buffer.push_back(bitString[i]);
 		searchEncodings(buffer, encodingTable, outputCh);
 		if (outputCh != -1)
@@ -153,8 +151,6 @@ void convertFile(ifstream &fin, ofstream &fout, vector<bool> &bitString, vector<
 {
 	char byte;
 	char outputCh;
-	//vector<bool> bitString;
-	//vector<bool> buffer;
 
 	while (fin.read(&byte, 1))
 	{
@@ -162,12 +158,6 @@ void convertFile(ifstream &fin, ofstream &fout, vector<bool> &bitString, vector<
 		{
 			bitString.push_back(((byte >> i) & 1) != 0);
 		}
-		//byte = -1;
-		//checkEncoding(bitString, outputCh, encodingTable);
-		/*if (outputCh != -1);
-		{
-			fout << outputCh;
-		}*/
 	}
 }
 
@@ -222,13 +212,22 @@ int main(int argc, char* argv[])
 
 			//create the encoding for each leaf node (character)
 			generateEncodings(root, startEncoding, encodingTable);
-			
-			convertFile(fin, fout, bitBuffer, encodingTable);
-			checkEncoding(bitBuffer, encodingTable, fout);
 
-
+			//prepare for decoding
+			string ready;
+			fin >> ready;
+			if (ready == "Start") {
+				convertFile(fin, fout, bitBuffer, encodingTable);
+				cout << "Check encoding started" << endl;
+				checkEncoding(bitBuffer, encodingTable, fout);
+			}
+			else {
+				cout << "Error: encoded section of text does not have a clear boundary" << endl;
+			}
 		}
 	}
+
+	cout << "done ";
 	cin.get();
 	cin.get();
 
