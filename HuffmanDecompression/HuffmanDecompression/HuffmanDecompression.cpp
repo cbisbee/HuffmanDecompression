@@ -118,7 +118,7 @@ void generateEncodings(huffNode *root, vector<bool> & encoding, vector<vector<bo
 	}
 }
 
-void searchEncodings(vector<bool> bitString, vector<vector<bool>> encodingTable,char &asciiChar)
+void searchEncodings(vector<bool> &bitString, vector<vector<bool>> &encodingTable,char &asciiChar)
 {
 	asciiChar = -1;
 	for (int i = 0; i < 256; i++)
@@ -126,6 +126,7 @@ void searchEncodings(vector<bool> bitString, vector<vector<bool>> encodingTable,
 		if (encodingTable[i].size() == bitString.size() && bitString == encodingTable[i])
 		{
 			asciiChar = i;
+			break;
 		}
 	}
 }
@@ -134,6 +135,7 @@ void checkEncoding(vector<bool> bitString, vector<vector<bool>> encodingTable, o
 {
 	char outputCh = -1;
 	vector<bool> buffer;
+	buffer.reserve(30); //trying to cut back on memory reallocations to increase speed
 	bitString.erase(bitString.begin(), bitString.begin() + 8); //getting rid of "junk" bits that were messing with my output
 	for (int i = 0; i < bitString.size(); i++)
 	{
@@ -214,16 +216,9 @@ int main(int argc, char* argv[])
 			generateEncodings(root, startEncoding, encodingTable);
 
 			//prepare for decoding
-			string ready;
-			fin >> ready;
-			if (ready == "Start") {
 				convertFile(fin, fout, bitBuffer, encodingTable);
 				cout << "Check encoding started" << endl;
 				checkEncoding(bitBuffer, encodingTable, fout);
-			}
-			else {
-				cout << "Error: encoded section of text does not have a clear boundary" << endl;
-			}
 		}
 	}
 
