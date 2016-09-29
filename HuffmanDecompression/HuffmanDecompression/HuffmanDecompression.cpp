@@ -3,11 +3,14 @@
 #include <string>
 #include <bitset>
 #include <queue>
+#include <iomanip>
 
 using namespace std;
 
 string inFileName;
 const string universalIdentifier = "BIZCOMPRESS";
+float ogFileSize = 0;
+float comprFileSize = 0;
 
 struct huffNode
 {
@@ -161,6 +164,15 @@ void convertFile(ifstream &fin, ofstream &fout, vector<bool> &bitString, vector<
 			bitString.push_back(((byte >> i) & 1) != 0);
 		}
 	}
+	comprFileSize += bitString.size() / 8;
+}
+
+void calculateOgFileSize(int frequencyTable[256])
+{
+	for (int i = 0; i < 256; i++)
+	{
+		ogFileSize += frequencyTable[i]; //calculating number of bits in original file
+	}
 }
 
 int main(int argc, char* argv[])
@@ -197,7 +209,7 @@ int main(int argc, char* argv[])
 
 			string originalFileName;
 			fin >> originalFileName;
-			cout << "The original file name was: " << originalFileName << endl;
+			cout << "Original file name: " << originalFileName << endl;
 
 			int frequencyList[256];
 			
@@ -216,9 +228,14 @@ int main(int argc, char* argv[])
 			generateEncodings(root, startEncoding, encodingTable);
 
 			//prepare for decoding
-				convertFile(fin, fout, bitBuffer, encodingTable);
-				cout << "Check encoding started" << endl;
-				checkEncoding(bitBuffer, encodingTable, fout);
+			convertFile(fin, fout, bitBuffer, encodingTable);
+			cout << "Check encoding started" << endl;
+			checkEncoding(bitBuffer, encodingTable, fout);
+
+			calculateOgFileSize(frequencyList);
+			//cout << "Original file size: " << ogFileSize << endl;
+			//cout << "Compressed file size: " << comprFileSize << endl;
+			cout << "Ratio of compression: " << setprecision(4) << (comprFileSize / ogFileSize) * 100 << '%' << endl;
 		}
 	}
 
